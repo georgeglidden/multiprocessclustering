@@ -1,0 +1,8 @@
+objectives:
+  - collect graph algorithms useful for unsupervised clustering of signal data
+  MPC:
+    -
+  SurfaceToShape:
+    -
+  GraphVisualizer:
+    - pygame ux for creating, modifying graphs, visualizing graph algorithms 
