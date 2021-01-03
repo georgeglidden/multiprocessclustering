@@ -95,6 +95,8 @@ class Surface2D:
         if obj == None:
             # use a simple maximization scheme to iteratively construct our perimeter cycle.
             obj = self.G.dist
+        if obj == 'min-adj':
+            obj = lambda v: 1 / self.G.deg(v)
         tail = f
         head = f
         self._label[head] = self._label[tail]
@@ -144,45 +146,6 @@ class Surface2D:
     def characteristic(self):
         seq = self.distance_sequence()
         return fft(seq) / self.perimeter()
-
-class Surface2D_momentum(Surface2D):
-    def __init__(self, embodied_graph, sustain = 40):
-        self.G = embodied_graph
-        self._label = [v for v in range(self.G.V())]
-        vertices_by_distance = sorted([v for v in range(self.G.V())], key=lambda v: self.G.dist(v))
-        f = vertices_by_distance[-1]
-        tail = f
-        head = f
-        self._label[head] = self._label[tail]
-        cycle = []
-        while self._hom_deg(tail) < 2 and len(self._het_adj(head)) > 0:
-            cycle.append(head)
-            trail = cycle[-sustain:]
-            t = len(trail)
-            delta_angle = lambda v, w: self.G.angle(w) - self.G.angle(v)
-            adjusted_delta_angle = lambda v, w: min(delta_angle(v, w), 2*PI - delta_angle(v,w))
-            if t > 0:
-                sum_delta_angle = 0.0
-                for v in range(t-1):
-                    w = v+1
-                    sum_delta_angle += adjusted_delta_angle(v,w)
-                avg_delta_angle = sum_delta_angle / t
-                # momentum objective
-                #obj = lambda v: self.G.dist(v) - (sustain * abs(avg_delta_angle - delta_angle(head, v)))
-            obj = lambda v: self.G.dist(v) - (abs(avg_delta_angle - adjusted_delta_angle(head, v)))
-            unvisited = self._het_adj(head)
-            head = unvisited[argmax([obj(v) for v in unvisited])]
-            self._label[head] = self._label[tail]
-            if t > 0:
-                print(f'{len(cycle)} {self.G.dist(head)}\t{abs(avg_delta_angle - adjusted_delta_angle(cycle[-1], head))}\t{self.G.dist(head) - (abs(avg_delta_angle - adjusted_delta_angle(cycle[-1], head)))}')
-
-        cycle.append(head)
-        # the surface is a cycle
-        assert cycle[0] in self._hom_adj(cycle[-1])
-        n = len(cycle)
-
-        self._surface = cycle
-        self._n = n
 
 def main():
     import sys, re

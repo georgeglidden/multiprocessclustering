@@ -14,6 +14,9 @@ class Graph:
     def adj(self, i):
         return self._adj[i]
 
+    def deg(self, i):
+        return len(self.adj(i))
+
 class CC:
     def __init__(self, G):
         self.G = G

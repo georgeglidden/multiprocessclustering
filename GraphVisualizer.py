@@ -1,4 +1,4 @@
-from SurfaceToShape import EmbodiedGraph, Surface2D_momentum
+from SurfaceToShape import EmbodiedGraph, Surface2D
 import sys, re
 from random import randint
 tupler = lambda edge: re.sub(r'[()]', '', edge).split(',')
@@ -58,7 +58,7 @@ else:
         f'loaded an embedded graph from {sys.argv[1]}.\n'
         f'V: {G.V()}\tE: {G.E()}\tD: {G.D()}')
 
-    surface = Surface2D_momentum(G)
+    surface = Surface2D(G, obj='min-adj')
 
     print('\ninitializing ux...')
     import pygame
