@@ -1,87 +1,6 @@
-from MPC import Graph
+from Graphs import EmbeddedGraph, EmbodiedGraph
 from numpy import array, argmin, argmax, sqrt, sum, power, arctan2, pi as PI
 from numpy.fft import fft
-
-# symmetric distance between x1 and x2
-def euclidean(x1, x2):
-    return sqrt(sum(power(array(x1)-array(x2),2), axis=0))
-
-# angle from x1 to x2
-def arctangent(x1, x2):
-    return arctan2(x1[1]-x2[1], x1[0]-x2[0])
-
-class EmbeddedGraph(Graph):
-
-    # V : int
-    # embedding : list of float D-tuples
-    # edges : list of integer 2-tuples
-    # dist : embedding^{2} -> reals
-    def __init__(self, V, D, embedding, edges,
-            dist=euclidean, angle=arctangent):
-        # all nodes are embedded
-        assert len(embedding) == V
-        # consistent dimension
-        assert [len(e) for e in embedding] == V * [D]
-        super().__init__(V, edges)
-        self._D = D
-        self._embedding = embedding
-        self._dist = dist
-        self._angle = arctangent
-
-    def D(self):
-        return self._D
-
-    def E(self):
-        return sum([len(self._adj[v]) for v in range(self.V())]) // 2
-
-    def pos(self, v):
-        return self._embedding[v]
-
-    def dist(self, v, w):
-        return self._dist(self.pos(v), self.pos(w))
-
-    def angle(self, v, w):
-        return self._angle(self.pos(v), self.pos(w))
-
-
-class EmbodiedGraph(EmbeddedGraph):
-
-    def __init__(self, V, D, embedding, edges,
-            mass=lambda v: 1,dist=euclidean,angle=arctangent):
-        super().__init__(V, D, embedding, edges, dist=dist,angle=angle)
-        self._mass = mass
-
-        esum = [0.0 for d in range(self.D())]
-        wsum = 0.0
-        for v in range(self.V()):
-            w = self.mass(v)
-            wsum += w
-            e = self.pos(v)
-            for d in range(self.D()):
-                esum[d] += e[d]
-        self._pos_c = tuple([esum[d]/wsum for d in range(self.D())])
-        self._c = argmin([dist(self.pos(v), self._pos_c) for v in range(self.V())])
-
-    def mass(self, v):
-        return self._mass(v)
-
-    def pos_c(self):
-        return self._pos_c
-
-    def vtx_c(self):
-        return self._c
-
-    def dist(self, v, w=None):
-        if w == None:
-            return self._dist(self.pos(v), self.pos_c())
-        else:
-            return super().dist(v, w)
-
-    def angle(self, v, w=None):
-        if w == None:
-            return self._angle(self.pos(v), self.pos_c())
-        else:
-            return super().angle(v, w)
 
 # perimeter of a planar graph
 class Surface2D:
@@ -103,12 +22,14 @@ class Surface2D:
         cycle = []
         while self._hom_deg(tail) < 2 and len(cycle) < self.G.V():
             unvisited = self._het_adj(head)
+            if len(unvisited) == 0:
+                break
             cycle.append(head)
             head = unvisited[argmax([obj(v) for v in unvisited])]
             self._label[head] = self._label[tail]
         cycle.append(head)
         # the surface is a cycle ...
-        assert cycle[0] in self._hom_adj(cycle[-1])
+        print('cyclic', cycle[0] in self._hom_adj(cycle[-1]))
         n = len(cycle)
         #assert set(cycle) == set(vertices_by_distance[-n:])
 

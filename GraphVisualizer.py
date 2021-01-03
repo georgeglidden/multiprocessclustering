@@ -1,9 +1,10 @@
-from SurfaceToShape import EmbodiedGraph, Surface2D
+from Graphs import EmbodiedGraph
+from SurfaceToShape import Surface2D
 import sys, re
 from random import randint
 tupler = lambda edge: re.sub(r'[()]', '', edge).split(',')
 to_ints = lambda x: (int(x[0]), int(x[1]))
-parse = lambda edge: to_ints(tupler(edge))
+to_floats = lambda x: (float(x[0]), float(x[1]))
 try:
     G = None
     ext = sys.argv[1][-4:]
@@ -13,8 +14,8 @@ try:
             V = int(data[0])
             D = int(data[1])
             E = int(data[2+V])
-            embedding = [parse(embed) for embed in data[2:2+V]]
-            edges = [parse(edge) for edge in data[3+V:3+V+E]]
+            embedding = [to_floats(tupler(embed)) for embed in data[2:2+V]]
+            edges = [to_ints(tupler(embed)) for edge in data[3+V:3+V+E]]
             G = EmbodiedGraph(V, D, embedding, edges)
             assert G.E() == E
     elif ext == '.png':
@@ -26,7 +27,7 @@ try:
         w, h = blobsource.shape
         print(w,h)
         is_node = blobsource > threshold_otsu(blobsource)
-        nbhd_rule = int(input('4-adj or 8-adj? (enter an integer): '))
+        nbhd_rule = 8#int(input('4-adj or 8-adj? (enter an integer): '))
         if nbhd_rule == 4:
             adj = lambda x, y: [(x-1,y),(x,y-1),(x+1,y),(x,y+1)]
         elif nbhd_rule == 8:
@@ -42,6 +43,7 @@ try:
         embedding = list(inv_emb.keys())
         for v in range(V):
             x1,y1 = embedding[v]
+            print((x1,y1))
             for x2,y2 in adj(x1,y1):
                 if is_node[x2,y2]:
                     w = inv_emb[x2,y2]
